@@ -1,0 +1,12 @@
+# nunca copiar para a imagem
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+.git
+
+# segredos e estado local — entram via volume/mount no compose, jamais na imagem
+**/.env
+**/.env.*
+apps/api/secrets
+apps/api/sessions
+sessions
