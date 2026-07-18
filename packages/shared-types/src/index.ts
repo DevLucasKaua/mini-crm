@@ -40,6 +40,10 @@ export interface WhatsappStatusDto {
   qrDataUrl: string | null;
 }
 
+export interface SendMessageInput {
+  content: string;
+}
+
 export interface StatsDto {
   conversations: number;
   messagesInbound: number;
