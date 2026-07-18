@@ -26,10 +26,15 @@ export function LoginPage() {
   return (
     <main className="login-page">
       <section className="login-card">
-        <h1>Mini CRM</h1>
-        <p>WhatsApp multiatendimento — E3</p>
+        <div className="brand login-brand" aria-label="Mini CRM">
+          MINI<b>CRM</b>
+        </div>
+        <p className="login-tagline">
+          Atendimento WhatsApp por unidade, num só lugar.
+        </p>
         <button
           type="button"
+          className="btn primary login-btn"
           onClick={() => void handleSignIn()}
           disabled={signingIn}
         >
