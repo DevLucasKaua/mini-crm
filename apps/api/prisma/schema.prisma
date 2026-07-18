@@ -32,10 +32,14 @@ model Conversation {
   unit          Unit      @relation(fields: [unitId], references: [id])
   contactPhone  String
   contactName   String?
+  // JID do chat no WhatsApp (ex.: 5581...@s.whatsapp.net ou ...@lid) —
+  // necessário para responder e para mapear mensagens fromMe de chats @lid
+  remoteJid     String?
   lastMessageAt DateTime  @default(now())
   messages      Message[]
 
   @@unique([unitId, contactPhone])
+  @@index([unitId, remoteJid])
   @@index([unitId, lastMessageAt])
 }
 
