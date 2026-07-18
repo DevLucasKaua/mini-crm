@@ -4,7 +4,8 @@
   "scripts": {
     "build": "nest build",
     "start": "node dist/main.js",
-    "start:dev": "nest start --watch"
+    "start:dev": "nest start --watch",
+    "prisma:seed": "prisma db seed"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -20,10 +21,12 @@
     "@whiskeysockets/baileys": "6.7.23",
     "firebase-admin": "^13.4.0",
     "pino": "^9.7.0",
+    "prisma": "^6.19.3",
     "qrcode": "^1.5.4",
     "qrcode-terminal": "^0.12.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "tsx": "^4.20.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
@@ -32,8 +35,6 @@
     "@types/qrcode": "^1.5.5",
     "@types/qrcode-terminal": "^0.12.2",
     "@types/node": "^24.0.0",
-    "prisma": "^6.19.3",
-    "tsx": "^4.20.3",
     "typescript": "~5.8.3"
   }
 }
