@@ -22,6 +22,7 @@ import makeWASocket, {
 import pino from 'pino';
 import { toDataURL } from 'qrcode';
 import * as qrcodeTerminal from 'qrcode-terminal';
+import { WhatsappMessageHandler } from './whatsapp-message.handler';
 
 const MAX_RECONNECT_DELAY_MS = 30_000;
 
@@ -40,7 +41,10 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
   private readonly baileysLogger = pino({ level: 'silent' });
   private shuttingDown = false;
 
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly messageHandler: WhatsappMessageHandler,
+  ) {}
 
   async onModuleInit(): Promise<void> {
     const root = this.sessionRootDir();
@@ -129,6 +133,15 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
     session.socket = socket;
 
     socket.ev.on('creds.update', saveCreds);
+    socket.ev.on('messages.upsert', (upsert) => {
+      void this.messageHandler
+        .handleUpsert(unitId, upsert)
+        .catch((error: Error) => {
+          this.logger.error(
+            `messages.upsert handler failed for unit ${unitId}: ${error.message}`,
+          );
+        });
+    });
     socket.ev.on('connection.update', (update) => {
       void this.handleConnectionUpdate(unitId, update).catch((error: Error) => {
         this.logger.error(
