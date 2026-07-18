@@ -86,7 +86,8 @@ Mensagem recebida cujo texto, após `trim()`, seja **exatamente `Oi`** (case-sen
 
 Escopo do processamento de mensagens:
 - Somente mensagens de texto diretas (1-para-1); grupos, status e newsletters são ignorados.
-- Mensagens enviadas manualmente pelo próprio aparelho pareado (`fromMe`) não são registradas — o CRM registra o que os clientes enviam e o que o bot responde.
+- Mensagens enviadas manualmente pelo próprio aparelho pareado (`fromMe`) também são registradas, como OUTBOUND.
+- O atendente pode responder direto pelo CRM (composer no chat) — a mensagem sai pela sessão da unidade e fica registrada na conversa.
 - Idempotência por `waMessageId` único: reentregas do Baileys não duplicam mensagens nem re-disparam o bot.
 - Contas com privacidade de número (JID `@lid`): o telefone real é resolvido via `senderPn`.
 
@@ -101,13 +102,22 @@ Escopo do processamento de mensagens:
 
 Frontend hospedado no **Firebase Hosting** (build de produção com `VITE_API_URL=http://localhost:3000`): a SPA hospedada chama a API local — `localhost` é exceção de secure-context nos navegadores Chromium, sem mixed-content. Ou seja, para avaliar a versão hospedada basta ter o `docker compose up` rodando na própria máquina.
 
+> ⚠️ **Permissão de rede local**: os navegadores Chromium recentes restringem sites públicos de acessar `localhost` ("Local Network Access"). No Chrome/Edge, **clique em Permitir** quando o navegador perguntar se o site pode acessar a rede local. Se não houver prompt e as chamadas falharem (erro "A API está no ar?"), habilite a permissão nas configurações do site ou desative a checagem em `chrome://flags` → "Local Network Access Checks". Em `http://localhost:5173` (dev) a restrição não se aplica.
+
 - URL do deploy: **https://mini-crm-af51d.web.app**
 - Deploy manual: `pnpm --filter web build && firebase deploy --only hosting` (dentro de `apps/web`, autenticado com `firebase login`).
+
+## Evoluções após a entrega original
+
+Itens do "o que eu faria diferente" que já foram implementados em sprints seguintes:
+
+- ✅ **Envio de mensagens pelo CRM** (composer no chat) e **registro das mensagens `fromMe`** digitadas no aparelho.
+- ✅ **Testes automatizados** (vitest): handler de mensagens (filtros, idempotência, gatilho exato do bot) e service de conversas (isolamento por unidade).
+- ✅ **Redesign completo** com temas claro/escuro, dashboard de indicadores por unidade e desconexão do WhatsApp pela interface.
 
 ## O que eu faria diferente com mais tempo
 
 - **WebSocket/SSE** no lugar do polling para entrega instantânea de mensagens e status.
 - **Auth state do Baileys no banco** (em vez de arquivos) para permitir múltiplas instâncias da API e failover.
-- **Testes automatizados**: unit nos services (isolamento, bot, idempotência) e e2e da API com banco efêmero.
-- **Envio de mensagens pelo CRM** e registro das mensagens `fromMe` digitadas no aparelho.
+- **Suporte a mídia** (imagens/áudio) e busca/paginação de conversas.
 - **Turborepo** para cache de build no monorepo; **API no Cloud Run + Cloud SQL** para um deploy 100% gerenciado.
