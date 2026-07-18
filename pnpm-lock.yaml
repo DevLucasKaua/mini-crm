@@ -84,6 +84,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@mini-crm/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
       firebase:
         specifier: ^12.16.0
         version: 12.16.0
