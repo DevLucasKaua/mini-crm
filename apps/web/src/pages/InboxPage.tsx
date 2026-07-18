@@ -1,19 +1,33 @@
 import type { ConversationDto, MessageDto } from '@mini-crm/shared-types';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../lib/api';
 
 const POLL_INTERVAL_MS = 5000;
 
-const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
+const dateTimeFormatter = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short',
   timeStyle: 'short',
 });
+
+const timeFormatter = new Intl.DateTimeFormat('pt-BR', {
+  timeStyle: 'short',
+});
+
+function contactInitials(conversation: ConversationDto): string {
+  const name = conversation.contactName?.trim();
+  if (name) {
+    const parts = name.split(/\s+/);
+    return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
+  }
+  return conversation.contactPhone.slice(-2);
+}
 
 export function InboxPage() {
   const [conversations, setConversations] = useState<ConversationDto[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageDto[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const msgsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -68,61 +82,117 @@ export function InboxPage() {
     };
   }, [selectedId]);
 
+  useEffect(() => {
+    const el = msgsRef.current;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [messages]);
+
+  const selected = conversations.find((c) => c.id === selectedId) ?? null;
+
   return (
-    <div className="inbox">
-      <aside className="inbox-list">
-        <h2>Conversas</h2>
-        {error && <p className="login-error">{error}</p>}
-        {conversations.length === 0 && !error && (
-          <p className="inbox-empty">Nenhuma conversa ainda.</p>
-        )}
-        <ul>
+    <section className="view">
+      <div className="view-head">
+        <h1>
+          Conversas<small>mensagens recebidas da sua unidade</small>
+        </h1>
+      </div>
+
+      {error && <p className="login-error">{error}</p>}
+
+      <div className="cv-layout">
+        <div className="cv-list">
+          {conversations.length === 0 && (
+            <div className="vempty">Nenhuma conversa ainda.</div>
+          )}
           {conversations.map((conversation) => (
-            <li key={conversation.id}>
-              <button
-                type="button"
-                className={
-                  conversation.id === selectedId
-                    ? 'conversation-item selected'
-                    : 'conversation-item'
-                }
-                onClick={() => setSelectedId(conversation.id)}
-              >
-                <span className="conversation-name">
-                  {conversation.contactName ?? conversation.contactPhone}
-                </span>
-                <span className="conversation-preview">
-                  {conversation.lastMessagePreview ?? '—'}
-                </span>
-                <span className="conversation-time">
-                  {timeFormatter.format(new Date(conversation.lastMessageAt))}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </aside>
-      <section className="inbox-thread">
-        {!selectedId && (
-          <p className="inbox-empty">Selecione uma conversa à esquerda.</p>
-        )}
-        {selectedId &&
-          messages.map((message) => (
-            <div
-              key={message.id}
+            <button
+              key={conversation.id}
+              type="button"
               className={
-                message.direction === 'OUTBOUND'
-                  ? 'bubble outbound'
-                  : 'bubble inbound'
+                conversation.id === selectedId ? 'cv-item sel' : 'cv-item'
               }
+              onClick={() => setSelectedId(conversation.id)}
             >
-              <p>{message.content}</p>
-              <span className="bubble-time">
-                {timeFormatter.format(new Date(message.timestamp))}
+              <span className="ph-av">{contactInitials(conversation)}</span>
+              <span className="cv-mid">
+                <span className="cv-top">
+                  <b>{conversation.contactName ?? conversation.contactPhone}</b>
+                  <span>
+                    {timeFormatter.format(new Date(conversation.lastMessageAt))}
+                  </span>
+                </span>
+                <p>{conversation.lastMessagePreview ?? '—'}</p>
               </span>
-            </div>
+            </button>
           ))}
-      </section>
-    </div>
+        </div>
+
+        <div className="cv-chat">
+          {!selected && (
+            <div className="cv-empty">Selecione uma conversa à esquerda.</div>
+          )}
+          {selected && (
+            <>
+              <div className="cv-head">
+                <span className="ph-av">{contactInitials(selected)}</span>
+                <div className="cv-head-id">
+                  <b>{selected.contactName ?? selected.contactPhone}</b>
+                  <span className="sub">+{selected.contactPhone}</span>
+                </div>
+              </div>
+              <div className="cv-msgs" ref={msgsRef}>
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={
+                      message.direction === 'OUTBOUND' ? 'bub out' : 'bub in'
+                    }
+                  >
+                    {message.content}
+                    <span className="btime">
+                      {timeFormatter.format(new Date(message.timestamp))}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        <aside className="cv-side">
+          {selected && (
+            <div className="panel">
+              <p className="panel-label">Dados do contato</p>
+              <table className="tbl">
+                <tbody>
+                  <tr>
+                    <td>Nome</td>
+                    <td>{selected.contactName ?? '—'}</td>
+                  </tr>
+                  <tr>
+                    <td>Telefone</td>
+                    <td>+{selected.contactPhone}</td>
+                  </tr>
+                  <tr>
+                    <td>Mensagens</td>
+                    <td>{messages.length}</td>
+                  </tr>
+                  <tr>
+                    <td>Última atividade</td>
+                    <td>
+                      {dateTimeFormatter.format(
+                        new Date(selected.lastMessageAt),
+                      )}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          )}
+        </aside>
+      </div>
+    </section>
   );
 }
