@@ -49,6 +49,7 @@ cp apps/web/.env.example apps/web/.env.local
 ```
 
 - **`.env` (raiz)**: `FIREBASE_PROJECT_ID` + emails das duas contas Google (`SEED_USER_MATRIZ_EMAIL`, `SEED_USER_FILIAL_EMAIL`) — esses emails viram os usuários autorizados de cada unidade no seed.
+  > **Controle de acesso**: qualquer conta Google consegue passar pelo popup de login, mas o backend só autoriza os emails cadastrados no seed — qualquer outra conta recebe 403 e a mensagem "Sua conta não está cadastrada em nenhuma unidade". Para dar acesso a alguém, inclua o email no `.env` e rode o seed de novo.
 - **`apps/web/.env.local`**: os 4 valores `VITE_FIREBASE_*` da config web + `VITE_API_URL` (default `http://localhost:3000`).
 
 ### 3. Subir
