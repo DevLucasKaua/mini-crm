@@ -2,6 +2,7 @@ import type { MeDto } from '@mini-crm/shared-types';
 import { useEffect, useState } from 'react';
 import { useAuth } from './auth/AuthProvider';
 import { api, ApiError } from './lib/api';
+import { InboxPage } from './pages/InboxPage';
 import { LoginPage } from './pages/LoginPage';
 
 export function App() {
@@ -36,18 +37,22 @@ export function App() {
   }
 
   return (
-    <main>
-      <h1>Mini CRM</h1>
-      <p>Conectado como {user.email}</p>
-      {me && (
-        <p>
-          Unidade: <strong>{me.unit.name}</strong> ({me.unit.slug})
-        </p>
-      )}
+    <div className="app-shell">
+      <header className="app-header">
+        <h1>Mini CRM</h1>
+        <div className="app-header-user">
+          {me && (
+            <span>
+              {user.email} — <strong>{me.unit.name}</strong>
+            </span>
+          )}
+          <button type="button" onClick={() => void signOut()}>
+            Sair
+          </button>
+        </div>
+      </header>
       {meError && <p className="login-error">{meError}</p>}
-      <button type="button" onClick={() => void signOut()}>
-        Sair
-      </button>
-    </main>
+      {me && <InboxPage />}
+    </div>
   );
 }
