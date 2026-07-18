@@ -53,40 +53,62 @@ export function ConnectPage() {
     }
   };
 
+  const current = status?.status ?? null;
+
   return (
-    <section className="connect-page">
-      <h2>Conexão do WhatsApp</h2>
-      <p>
-        Status:{' '}
-        <strong>{status ? STATUS_LABELS[status.status] : 'Carregando…'}</strong>
-      </p>
-      {error && <p className="login-error">{error}</p>}
+    <section className="view">
+      <div className="view-head">
+        <h1>
+          Conexão<small>WhatsApp da sua unidade</small>
+        </h1>
+      </div>
 
-      {status?.status === 'disconnected' && (
-        <button
-          type="button"
-          onClick={() => void handleConnect()}
-          disabled={starting}
-        >
-          {starting ? 'Iniciando…' : 'Conectar WhatsApp'}
-        </button>
-      )}
-
-      {status?.status === 'qr' && status.qrDataUrl && (
-        <div className="connect-qr">
-          <img src={status.qrDataUrl} alt="QR code para parear o WhatsApp" />
-          <p>
-            Abra o WhatsApp no celular em <strong>Aparelhos conectados</strong>{' '}
-            e escaneie o código. Ele é renovado automaticamente.
-          </p>
+      <div className="panel connect-panel">
+        <div className="connect-status-row">
+          <span
+            className={`status-chip ${current ?? 'loading'}`}
+            aria-live="polite"
+          >
+            <i />
+            {current ? STATUS_LABELS[current] : 'Carregando…'}
+          </span>
         </div>
-      )}
 
-      {status?.status === 'connected' && (
-        <p className="connect-ok">
-          ✅ WhatsApp conectado. As mensagens recebidas aparecem no Inbox.
-        </p>
-      )}
+        {error && <p className="login-error">{error}</p>}
+
+        {current === 'disconnected' && (
+          <>
+            <p className="connect-hint">
+              Conecte o número de WhatsApp desta unidade para receber as
+              conversas no CRM.
+            </p>
+            <button
+              type="button"
+              className="btn primary"
+              onClick={() => void handleConnect()}
+              disabled={starting}
+            >
+              {starting ? 'Iniciando…' : 'Conectar WhatsApp'}
+            </button>
+          </>
+        )}
+
+        {current === 'qr' && status?.qrDataUrl && (
+          <div className="connect-qr">
+            <img src={status.qrDataUrl} alt="QR code para parear o WhatsApp" />
+            <p>
+              Abra o WhatsApp no celular em <strong>Aparelhos conectados</strong>{' '}
+              e escaneie o código. Ele é renovado automaticamente.
+            </p>
+          </div>
+        )}
+
+        {current === 'connected' && (
+          <p className="connect-ok">
+            WhatsApp conectado. As mensagens recebidas aparecem em Conversas.
+          </p>
+        )}
+      </div>
     </section>
   );
 }
