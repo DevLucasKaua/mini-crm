@@ -1,10 +1,15 @@
 import { useState } from 'react';
+import { Navigate } from 'react-router';
 import { useAuth } from '../auth/AuthProvider';
 
 export function LoginPage() {
-  const { signInWithGoogle } = useAuth();
+  const { user, loading, signInWithGoogle } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [signingIn, setSigningIn] = useState(false);
+
+  if (!loading && user) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleSignIn = async () => {
     setError(null);
