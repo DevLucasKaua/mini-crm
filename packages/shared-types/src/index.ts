@@ -39,3 +39,11 @@ export interface WhatsappStatusDto {
   status: WhatsappConnectionStatus;
   qrDataUrl: string | null;
 }
+
+export interface StatsDto {
+  conversations: number;
+  messagesInbound: number;
+  messagesOutbound: number;
+  lastMessageAt: string | null;
+  whatsappStatus: WhatsappConnectionStatus;
+}
