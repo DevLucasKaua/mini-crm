@@ -13,6 +13,13 @@ export class WhatsappController {
     return this.whatsappService.connect(user.unitId);
   }
 
+  @Post('disconnect')
+  disconnect(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<WhatsappStatusDto> {
+    return this.whatsappService.disconnect(user.unitId);
+  }
+
   @Get('status')
   getStatus(@CurrentUser() user: AuthenticatedUser): WhatsappStatusDto {
     return this.whatsappService.getStatus(user.unitId);

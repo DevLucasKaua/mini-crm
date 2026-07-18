@@ -1,5 +1,7 @@
 import type { ConversationDto, MessageDto } from '@mini-crm/shared-types';
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router';
+import { useWhatsappStatus } from '../components/WhatsappStatusChip';
 import { api, ApiError } from '../lib/api';
 
 const POLL_INTERVAL_MS = 5000;
@@ -30,6 +32,7 @@ export function InboxPage() {
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  const whatsappStatus = useWhatsappStatus();
   const msgsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -126,6 +129,13 @@ export function InboxPage() {
       </div>
 
       {error && <p className="login-error">{error}</p>}
+
+      {whatsappStatus === 'disconnected' && (
+        <div className="cv-banner">
+          WhatsApp desconectado — novas mensagens não chegam e o envio está
+          indisponível. <Link to="/conexao">Conectar agora</Link>
+        </div>
+      )}
 
       <div className="cv-layout">
         <div className="cv-list">

@@ -4,6 +4,7 @@ import { NavLink, Outlet } from 'react-router';
 import { useAuth } from '../auth/AuthProvider';
 import { api, ApiError } from '../lib/api';
 import { ThemeToggle } from '../theme/ThemeToggle';
+import { WhatsappStatusChip } from './WhatsappStatusChip';
 
 const navClassName = ({ isActive }: { isActive: boolean }) =>
   isActive ? 'active' : undefined;
@@ -60,6 +61,7 @@ export function Layout() {
               {user?.email} · <b>{me.unit.name}</b>
             </span>
           )}
+          <WhatsappStatusChip />
           <ThemeToggle />
           <div className="avatar" title={user?.email ?? undefined}>
             {initials(user?.email)}

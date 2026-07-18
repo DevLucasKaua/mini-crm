@@ -1,6 +1,5 @@
 import type { StatsDto, WhatsappConnectionStatus } from '@mini-crm/shared-types';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
 import { api } from '../lib/api';
 
 const POLL_INTERVAL_MS = 10_000;
@@ -52,14 +51,6 @@ export function OverviewPage() {
         <h1>
           Visão geral<small>resumo da sua unidade</small>
         </h1>
-        <div className="dash-actions">
-          <Link to="/conversas" className="btn">
-            Abrir conversas
-          </Link>
-          <Link to="/conexao" className="btn">
-            Conexão
-          </Link>
-        </div>
       </div>
 
       {error && <p className="login-error">{error}</p>}
