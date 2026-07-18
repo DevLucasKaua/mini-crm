@@ -1,0 +1,6 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Required for `pnpm deploy` (Docker prod image) to bundle workspace deps on pnpm >= 10
+injectWorkspacePackages: true
