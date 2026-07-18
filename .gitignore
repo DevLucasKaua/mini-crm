@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+build/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Secrets & WhatsApp sessions (never commit)
+apps/api/secrets/
+apps/api/sessions/
+sessions/
+
+# Firebase
+.firebase/
+firebase-debug.log
+
+# Logs & misc
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

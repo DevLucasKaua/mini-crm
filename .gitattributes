@@ -1,0 +1,14 @@
+# Normalize line endings: LF in the repository for all text files
+* text=auto eol=lf
+
+# Shell scripts must always be LF (alpine containers break on CRLF)
+*.sh text eol=lf
+
+# Windows scripts keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.ico binary
