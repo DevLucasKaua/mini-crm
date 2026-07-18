@@ -7,6 +7,7 @@ import { ConversationsModule } from './conversations/conversations.module';
 import { validateEnv } from './config/env.validation';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { StatsModule } from './stats/stats.module';
 import { UsersModule } from './users/users.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
 
@@ -21,6 +22,7 @@ import { WhatsappModule } from './whatsapp/whatsapp.module';
     UsersModule,
     ConversationsModule,
     WhatsappModule,
+    StatsModule,
     HealthModule,
   ],
   providers: [
