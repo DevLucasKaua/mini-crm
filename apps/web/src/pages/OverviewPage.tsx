@@ -7,7 +7,7 @@ export function OverviewPage() {
         </h1>
       </div>
       <div className="panel">
-        <p className="inbox-empty">
+        <p className="vempty">
           Os indicadores da unidade aparecerão aqui em breve.
         </p>
       </div>
