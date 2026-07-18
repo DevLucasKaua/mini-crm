@@ -6,9 +6,25 @@ import { PrismaService } from '../prisma/prisma.service';
 const USER_JID_SUFFIX = '@s.whatsapp.net';
 const LID_JID_SUFFIX = '@lid';
 
+// Regra do briefing: disparo exato e case-sensitive ("oi" não responde),
+// resposta byte-exata. Documentado no README.
+const AUTO_REPLY_TRIGGER = 'Oi';
+const AUTO_REPLY_TEXT = 'Oi! Aqui é o Atendente da E3';
+
 export interface MessagesUpsertPayload {
   messages: WAMessage[];
   type: string;
+}
+
+export type SendText = (
+  jid: string,
+  text: string,
+) => Promise<WAMessage | undefined>;
+
+interface PersistedInbound {
+  conversationId: string;
+  content: string;
+  jid: string;
 }
 
 @Injectable()
@@ -20,13 +36,17 @@ export class WhatsappMessageHandler {
   async handleUpsert(
     unitId: string,
     upsert: MessagesUpsertPayload,
+    sendText: SendText,
   ): Promise<void> {
     if (upsert.type !== 'notify') {
       return;
     }
     for (const message of upsert.messages) {
       try {
-        await this.persistInbound(unitId, message);
+        const persisted = await this.persistInbound(unitId, message);
+        if (persisted && persisted.content.trim() === AUTO_REPLY_TRIGGER) {
+          await this.sendAutoReply(unitId, persisted, sendText);
+        }
       } catch (error) {
         this.logger.error(
           `Failed to persist message for unit ${unitId}: ${(error as Error).message}`,
@@ -38,19 +58,19 @@ export class WhatsappMessageHandler {
   private async persistInbound(
     unitId: string,
     message: WAMessage,
-  ): Promise<void> {
+  ): Promise<PersistedInbound | null> {
     const jid = message.key.remoteJid;
     if (!jid || message.key.fromMe) {
-      return;
+      return null;
     }
     // exclui grupos (@g.us), status@broadcast e newsletters; DMs chegam como
     // @s.whatsapp.net ou, em contas com privacidade de número, como @lid
     if (!jid.endsWith(USER_JID_SUFFIX) && !jid.endsWith(LID_JID_SUFFIX)) {
-      return;
+      return null;
     }
     const content = this.extractText(message);
     if (!content) {
-      return;
+      return null;
     }
 
     const contactPhone = this.resolveContactPhone(message, jid);
@@ -79,18 +99,47 @@ export class WhatsappMessageHandler {
       });
     } catch (error) {
       // waMessageId é @unique — colisão significa mensagem já persistida
-      // (Baileys pode reentregar a mesma mensagem), então apenas ignora.
+      // (Baileys pode reentregar a mesma mensagem); ignora sem re-responder.
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        return;
+        return null;
       }
       throw error;
     }
 
     this.logger.log(
       `Inbound message persisted for unit ${unitId} from ${contactPhone}`,
+    );
+    return { conversationId: conversation.id, content, jid };
+  }
+
+  private async sendAutoReply(
+    unitId: string,
+    inbound: PersistedInbound,
+    sendText: SendText,
+  ): Promise<void> {
+    const sent = await sendText(inbound.jid, AUTO_REPLY_TEXT);
+    const timestamp = sent ? this.toDate(sent.messageTimestamp) : new Date();
+
+    await this.prisma.message.create({
+      data: {
+        conversationId: inbound.conversationId,
+        unitId,
+        direction: 'OUTBOUND',
+        content: AUTO_REPLY_TEXT,
+        waMessageId: sent?.key?.id ?? null,
+        timestamp,
+      },
+    });
+    await this.prisma.conversation.update({
+      where: { id: inbound.conversationId },
+      data: { lastMessageAt: timestamp },
+    });
+
+    this.logger.log(
+      `Auto-reply sent for unit ${unitId} (conversation ${inbound.conversationId})`,
     );
   }
 
