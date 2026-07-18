@@ -2,6 +2,7 @@ import type {
   ConversationDto,
   MeDto,
   MessageDto,
+  SendMessageInput,
   StatsDto,
   WhatsappStatusDto,
 } from '@mini-crm/shared-types';
@@ -37,7 +38,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    throw new ApiError(response.status, `Erro ${response.status} em ${path}`);
+    let detail = `Erro ${response.status} em ${path}`;
+    try {
+      const body = (await response.json()) as { message?: unknown };
+      if (typeof body.message === 'string') {
+        detail = body.message;
+      }
+    } catch {
+      // corpo não-JSON — mantém a mensagem genérica
+    }
+    throw new ApiError(response.status, detail);
   }
   return response.json() as Promise<T>;
 }
@@ -48,6 +58,12 @@ export const api = {
   getConversations: () => request<ConversationDto[]>('/conversations'),
   getMessages: (conversationId: string) =>
     request<MessageDto[]>(`/conversations/${conversationId}/messages`),
+  sendMessage: (conversationId: string, content: string) =>
+    request<MessageDto>(`/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content } satisfies SendMessageInput),
+    }),
   connectWhatsapp: () =>
     request<WhatsappStatusDto>('/whatsapp/connect', { method: 'POST' }),
   getWhatsappStatus: () => request<WhatsappStatusDto>('/whatsapp/status'),

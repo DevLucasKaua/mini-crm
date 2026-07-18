@@ -617,6 +617,41 @@ button {
   color: rgba(255, 255, 255, 0.75);
 }
 
+.cv-composer {
+  border-top: 1px solid var(--hair);
+  padding: 10px 12px 12px;
+}
+
+.cv-inputrow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.cv-inputrow textarea {
+  flex: 1;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  padding: 9px 11px;
+  resize: none;
+  max-height: 120px;
+}
+
+.cv-inputrow textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.send-error {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--neg);
+}
+
 .cv-side {
   overflow-y: auto;
   min-height: 0;
