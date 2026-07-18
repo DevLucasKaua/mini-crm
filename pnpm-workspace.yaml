@@ -2,10 +2,15 @@ packages:
   - apps/*
   - packages/*
 
+# Baileys 6.7.x resolve libsignal via git (github:WhiskeySockets/libsignal-node),
+# o que a política padrão de supply-chain do pnpm 11 bloqueia
+blockExoticSubdeps: false
+
 allowBuilds:
   '@firebase/util': true
   '@prisma/client': true
   '@prisma/engines': true
+  '@whiskeysockets/baileys': true
   esbuild: true
   prisma: true
   protobufjs: true
