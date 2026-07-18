@@ -101,7 +101,7 @@ Escopo do processamento de mensagens:
 
 Frontend hospedado no **Firebase Hosting** (build de produção com `VITE_API_URL=http://localhost:3000`): a SPA hospedada chama a API local — `localhost` é exceção de secure-context nos navegadores Chromium, sem mixed-content. Ou seja, para avaliar a versão hospedada basta ter o `docker compose up` rodando na própria máquina.
 
-- URL do deploy: _preenchido no commit de deploy_
+- URL do deploy: **https://mini-crm-af51d.web.app**
 - Deploy manual: `pnpm --filter web build && firebase deploy --only hosting` (dentro de `apps/web`, autenticado com `firebase login`).
 
 ## O que eu faria diferente com mais tempo
