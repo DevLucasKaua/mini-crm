@@ -1,5 +1,6 @@
 import type { WhatsappStatusDto } from '@mini-crm/shared-types';
 import { useEffect, useState } from 'react';
+import { publishWhatsappStatus } from '../components/WhatsappStatusChip';
 import { api } from '../lib/api';
 
 const POLL_INTERVAL_MS = 2500;
@@ -24,6 +25,7 @@ export function ConnectPage() {
         .then((data) => {
           if (active) {
             setStatus(data);
+            publishWhatsappStatus(data.status);
             setError(null);
           }
         })
@@ -45,9 +47,25 @@ export function ConnectPage() {
     setError(null);
     setStarting(true);
     try {
-      setStatus(await api.connectWhatsapp());
+      const next = await api.connectWhatsapp();
+      setStatus(next);
+      publishWhatsappStatus(next.status);
     } catch {
       setError('Falha ao iniciar a conexão.');
+    } finally {
+      setStarting(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    setError(null);
+    setStarting(true);
+    try {
+      const next = await api.disconnectWhatsapp();
+      setStatus(next);
+      publishWhatsappStatus(next.status);
+    } catch {
+      setError('Falha ao desconectar.');
     } finally {
       setStarting(false);
     }
@@ -100,13 +118,31 @@ export function ConnectPage() {
               Abra o WhatsApp no celular em <strong>Aparelhos conectados</strong>{' '}
               e escaneie o código. Ele é renovado automaticamente.
             </p>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => void handleDisconnect()}
+              disabled={starting}
+            >
+              Cancelar
+            </button>
           </div>
         )}
 
         {current === 'connected' && (
-          <p className="connect-ok">
-            WhatsApp conectado. As mensagens recebidas aparecem em Conversas.
-          </p>
+          <>
+            <p className="connect-ok">
+              WhatsApp conectado. As mensagens recebidas aparecem em Conversas.
+            </p>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => void handleDisconnect()}
+              disabled={starting}
+            >
+              {starting ? 'Desconectando…' : 'Desconectar'}
+            </button>
+          </>
         )}
       </div>
     </section>

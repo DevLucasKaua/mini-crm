@@ -66,5 +66,7 @@ export const api = {
     }),
   connectWhatsapp: () =>
     request<WhatsappStatusDto>('/whatsapp/connect', { method: 'POST' }),
+  disconnectWhatsapp: () =>
+    request<WhatsappStatusDto>('/whatsapp/disconnect', { method: 'POST' }),
   getWhatsappStatus: () => request<WhatsappStatusDto>('/whatsapp/status'),
 };
