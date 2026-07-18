@@ -1,5 +1,9 @@
-import { Controller, Get, Param } from '@nestjs/common';
-import { ConversationDto, MessageDto } from '@mini-crm/shared-types';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  ConversationDto,
+  MessageDto,
+  SendMessageInput,
+} from '@mini-crm/shared-types';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { AuthenticatedUser } from '../auth/authenticated-user.interface';
 import { ConversationsService } from './conversations.service';
@@ -19,5 +23,18 @@ export class ConversationsController {
     @Param('id') conversationId: string,
   ): Promise<MessageDto[]> {
     return this.conversationsService.listMessages(user.unitId, conversationId);
+  }
+
+  @Post(':id/messages')
+  sendMessage(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') conversationId: string,
+    @Body() body: SendMessageInput,
+  ): Promise<MessageDto> {
+    return this.conversationsService.sendMessage(
+      user.unitId,
+      conversationId,
+      body?.content ?? '',
+    );
   }
 }

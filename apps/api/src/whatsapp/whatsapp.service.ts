@@ -17,6 +17,7 @@ import makeWASocket, {
   DisconnectReason,
   fetchLatestBaileysVersion,
   useMultiFileAuthState,
+  WAMessage,
   WASocket,
 } from '@whiskeysockets/baileys';
 import pino from 'pino';
@@ -94,6 +95,19 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
       status: session?.status ?? 'disconnected',
       qrDataUrl: session?.status === 'qr' ? session.qrDataUrl : null,
     };
+  }
+
+  // Envia texto pela sessão da unidade; undefined quando não há sessão conectada.
+  async sendText(
+    unitId: string,
+    jid: string,
+    text: string,
+  ): Promise<WAMessage | undefined> {
+    const session = this.sessions.get(unitId);
+    if (!session?.socket || session.status !== 'connected') {
+      return undefined;
+    }
+    return (await session.socket.sendMessage(jid, { text })) ?? undefined;
   }
 
   private sessionRootDir(): string {
