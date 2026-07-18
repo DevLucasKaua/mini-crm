@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Conversation, Prisma } from '@prisma/client';
 import { WAMessage } from '@whiskeysockets/baileys';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -43,9 +43,9 @@ export class WhatsappMessageHandler {
     }
     for (const message of upsert.messages) {
       try {
-        const persisted = await this.persistInbound(unitId, message);
-        if (persisted && persisted.content.trim() === AUTO_REPLY_TRIGGER) {
-          await this.sendAutoReply(unitId, persisted, sendText);
+        const inbound = await this.persistDirectMessage(unitId, message);
+        if (inbound && inbound.content.trim() === AUTO_REPLY_TRIGGER) {
+          await this.sendAutoReply(unitId, inbound, sendText);
         }
       } catch (error) {
         this.logger.error(
@@ -55,12 +55,15 @@ export class WhatsappMessageHandler {
     }
   }
 
-  private async persistInbound(
+  // Persiste mensagens de texto de chats diretos: recebidas como INBOUND e as
+  // enviadas pelo próprio aparelho (fromMe) como OUTBOUND. Retorna dados só
+  // para INBOUND persistida — o que alimenta o gatilho do bot.
+  private async persistDirectMessage(
     unitId: string,
     message: WAMessage,
   ): Promise<PersistedInbound | null> {
     const jid = message.key.remoteJid;
-    if (!jid || message.key.fromMe) {
+    if (!jid) {
       return null;
     }
     // exclui grupos (@g.us), status@broadcast e newsletters; DMs chegam como
@@ -73,25 +76,22 @@ export class WhatsappMessageHandler {
       return null;
     }
 
-    const contactPhone = this.resolveContactPhone(message, jid);
-    const contactName = message.pushName || null;
+    const fromMe = message.key.fromMe === true;
     const timestamp = this.toDate(message.messageTimestamp);
 
-    const conversation = await this.prisma.conversation.upsert({
-      where: { unitId_contactPhone: { unitId, contactPhone } },
-      update: {
-        lastMessageAt: timestamp,
-        ...(contactName ? { contactName } : {}),
-      },
-      create: { unitId, contactPhone, contactName, lastMessageAt: timestamp },
-    });
+    const conversation = fromMe
+      ? await this.resolveOutboundConversation(unitId, jid, timestamp)
+      : await this.upsertInboundConversation(unitId, jid, message, timestamp);
+    if (!conversation) {
+      return null;
+    }
 
     try {
       await this.prisma.message.create({
         data: {
           conversationId: conversation.id,
           unitId,
-          direction: 'INBOUND',
+          direction: fromMe ? 'OUTBOUND' : 'INBOUND',
           content,
           waMessageId: message.key.id ?? null,
           timestamp,
@@ -99,7 +99,8 @@ export class WhatsappMessageHandler {
       });
     } catch (error) {
       // waMessageId é @unique — colisão significa mensagem já persistida
-      // (Baileys pode reentregar a mesma mensagem); ignora sem re-responder.
+      // (reentrega do Baileys ou echo fromMe da própria auto-resposta);
+      // ignora sem re-responder.
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
@@ -109,10 +110,79 @@ export class WhatsappMessageHandler {
       throw error;
     }
 
+    if (fromMe) {
+      await this.prisma.conversation.update({
+        where: { id: conversation.id },
+        data: { lastMessageAt: timestamp },
+      });
+      this.logger.log(
+        `Outbound (device) message persisted for unit ${unitId} in conversation ${conversation.id}`,
+      );
+      return null;
+    }
+
     this.logger.log(
-      `Inbound message persisted for unit ${unitId} from ${contactPhone}`,
+      `Inbound message persisted for unit ${unitId} from ${conversation.contactPhone}`,
     );
     return { conversationId: conversation.id, content, jid };
+  }
+
+  private async upsertInboundConversation(
+    unitId: string,
+    jid: string,
+    message: WAMessage,
+    timestamp: Date,
+  ): Promise<Conversation> {
+    const contactPhone = this.resolveContactPhone(message, jid);
+    const contactName = message.pushName || null;
+    return this.prisma.conversation.upsert({
+      where: { unitId_contactPhone: { unitId, contactPhone } },
+      update: {
+        lastMessageAt: timestamp,
+        remoteJid: jid,
+        ...(contactName ? { contactName } : {}),
+      },
+      create: {
+        unitId,
+        contactPhone,
+        contactName,
+        remoteJid: jid,
+        lastMessageAt: timestamp,
+      },
+    });
+  }
+
+  // fromMe não traz senderPn, então chats @lid só são mapeáveis se a conversa
+  // já existir (remoteJid preenchido por alguma mensagem recebida antes).
+  private async resolveOutboundConversation(
+    unitId: string,
+    jid: string,
+    timestamp: Date,
+  ): Promise<Conversation | null> {
+    const byJid = await this.prisma.conversation.findFirst({
+      where: { unitId, remoteJid: jid },
+    });
+    if (byJid) {
+      return byJid;
+    }
+    if (jid.endsWith(USER_JID_SUFFIX)) {
+      const contactPhone = jid.slice(0, -USER_JID_SUFFIX.length);
+      return this.prisma.conversation.upsert({
+        where: { unitId_contactPhone: { unitId, contactPhone } },
+        update: { remoteJid: jid },
+        create: {
+          unitId,
+          contactPhone,
+          contactName: null,
+          remoteJid: jid,
+          lastMessageAt: timestamp,
+        },
+      });
+    }
+    this.logger.warn(
+      `fromMe em chat ${jid} sem conversa conhecida — ignorado (sem número real)`,
+    );
+    return null;
   }
 
   private async sendAutoReply(

@@ -367,16 +367,6 @@ button {
   min-width: 0;
 }
 
-.dash-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dash-actions .btn {
-  text-decoration: none;
-}
-
 /* ---------- dashboard ---------- */
 .grid {
   display: grid;
@@ -615,6 +605,61 @@ button {
 
 .bub.out .btime {
   color: rgba(255, 255, 255, 0.75);
+}
+
+.cv-composer {
+  border-top: 1px solid var(--hair);
+  padding: 10px 12px 12px;
+}
+
+.cv-inputrow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.cv-inputrow textarea {
+  flex: 1;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  padding: 9px 11px;
+  resize: none;
+  max-height: 120px;
+}
+
+.cv-inputrow textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.send-error {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--neg);
+}
+
+.topbar-chip {
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.cv-banner {
+  margin-bottom: 12px;
+  padding: 9px 14px;
+  border: 1px solid var(--accent-soft);
+  background: color-mix(in srgb, var(--accent-soft) 40%, var(--surface));
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.cv-banner a {
+  color: var(--accent-deep);
+  font-weight: 600;
 }
 
 .cv-side {

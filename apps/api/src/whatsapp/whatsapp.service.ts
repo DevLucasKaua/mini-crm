@@ -17,6 +17,7 @@ import makeWASocket, {
   DisconnectReason,
   fetchLatestBaileysVersion,
   useMultiFileAuthState,
+  WAMessage,
   WASocket,
 } from '@whiskeysockets/baileys';
 import pino from 'pino';
@@ -94,6 +95,52 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
       status: session?.status ?? 'disconnected',
       qrDataUrl: session?.status === 'qr' ? session.qrDataUrl : null,
     };
+  }
+
+  // Logout limpo da sessão da unidade: derruba o socket, invalida o pareamento
+  // no servidor do WhatsApp (quando autenticado) e apaga as credenciais locais.
+  async disconnect(unitId: string): Promise<WhatsappStatusDto> {
+    const session = this.sessions.get(unitId);
+    if (!session) {
+      return this.getStatus(unitId);
+    }
+    if (session.reconnectTimer) {
+      clearTimeout(session.reconnectTimer);
+      session.reconnectTimer = null;
+    }
+    const socket = session.socket;
+    session.socket = null;
+    session.status = 'disconnected';
+    session.qrDataUrl = null;
+    session.reconnectAttempts = 0;
+
+    if (socket) {
+      try {
+        await socket.logout();
+      } catch {
+        // sessão não autenticada (ex.: parada no QR) — só encerra o socket
+        socket.end(undefined);
+      }
+    }
+    fs.rmSync(path.join(this.sessionRootDir(), unitId), {
+      recursive: true,
+      force: true,
+    });
+    this.logger.log(`WhatsApp session disconnected for unit ${unitId}`);
+    return this.getStatus(unitId);
+  }
+
+  // Envia texto pela sessão da unidade; undefined quando não há sessão conectada.
+  async sendText(
+    unitId: string,
+    jid: string,
+    text: string,
+  ): Promise<WAMessage | undefined> {
+    const session = this.sessions.get(unitId);
+    if (!session?.socket || session.status !== 'connected') {
+      return undefined;
+    }
+    return (await session.socket.sendMessage(jid, { text })) ?? undefined;
   }
 
   private sessionRootDir(): string {
