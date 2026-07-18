@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Unit {
+  id            String         @id @default(cuid())
+  name          String
+  slug          String         @unique
+  createdAt     DateTime       @default(now())
+  users         User[]
+  conversations Conversation[]
+  messages      Message[]
+}
+
+model User {
+  id          String  @id @default(cuid())
+  firebaseUid String? @unique
+  email       String  @unique
+  name        String?
+  unitId      String
+  unit        Unit    @relation(fields: [unitId], references: [id])
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  unitId        String
+  unit          Unit      @relation(fields: [unitId], references: [id])
+  contactPhone  String
+  contactName   String?
+  lastMessageAt DateTime  @default(now())
+  messages      Message[]
+
+  @@unique([unitId, contactPhone])
+  @@index([unitId, lastMessageAt])
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+model Message {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   Conversation     @relation(fields: [conversationId], references: [id])
+  unitId         String
+  unit           Unit             @relation(fields: [unitId], references: [id])
+  direction      MessageDirection
+  content        String
+  waMessageId    String?          @unique
+  timestamp      DateTime         @default(now())
+
+  @@index([conversationId, timestamp])
+  @@index([unitId])
+}

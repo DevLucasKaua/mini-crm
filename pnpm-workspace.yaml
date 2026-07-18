@@ -2,5 +2,10 @@ packages:
   - apps/*
   - packages/*
 
+allowBuilds:
+  '@prisma/client': true
+  '@prisma/engines': true
+  prisma: true
+
 # Required for `pnpm deploy` (Docker prod image) to bundle workspace deps on pnpm >= 10
 injectWorkspacePackages: true
