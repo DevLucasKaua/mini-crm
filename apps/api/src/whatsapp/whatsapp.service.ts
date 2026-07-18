@@ -133,9 +133,11 @@ export class WhatsappService implements OnModuleInit, OnModuleDestroy {
     session.socket = socket;
 
     socket.ev.on('creds.update', saveCreds);
+    const sendText = async (jid: string, text: string) =>
+      (await socket.sendMessage(jid, { text })) ?? undefined;
     socket.ev.on('messages.upsert', (upsert) => {
       void this.messageHandler
-        .handleUpsert(unitId, upsert)
+        .handleUpsert(unitId, upsert, sendText)
         .catch((error: Error) => {
           this.logger.error(
             `messages.upsert handler failed for unit ${unitId}: ${error.message}`,
