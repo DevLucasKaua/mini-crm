@@ -1,6 +1,6 @@
 import type { ConversationDto, MessageDto } from '@mini-crm/shared-types';
 import { useEffect, useRef, useState } from 'react';
-import { api } from '../lib/api';
+import { api, ApiError } from '../lib/api';
 
 const POLL_INTERVAL_MS = 5000;
 
@@ -27,6 +27,9 @@ export function InboxPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageDto[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const msgsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,6 +58,8 @@ export function InboxPage() {
   }, []);
 
   useEffect(() => {
+    setDraft('');
+    setSendError(null);
     if (!selectedId) {
       setMessages([]);
       return;
@@ -90,6 +95,27 @@ export function InboxPage() {
   }, [messages]);
 
   const selected = conversations.find((c) => c.id === selectedId) ?? null;
+
+  const handleSend = async () => {
+    if (!selectedId || !draft.trim() || sending) {
+      return;
+    }
+    setSending(true);
+    setSendError(null);
+    try {
+      const sent = await api.sendMessage(selectedId, draft.trim());
+      setMessages((prev) => [...prev, sent]);
+      setDraft('');
+    } catch (err) {
+      setSendError(
+        err instanceof ApiError
+          ? err.message
+          : 'Falha ao enviar a mensagem. Tente novamente.',
+      );
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
     <section className="view">
@@ -156,6 +182,31 @@ export function InboxPage() {
                     </span>
                   </div>
                 ))}
+              </div>
+              <div className="cv-composer">
+                {sendError && <p className="send-error">{sendError}</p>}
+                <div className="cv-inputrow">
+                  <textarea
+                    rows={1}
+                    placeholder="Escreva sua mensagem…"
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        void handleSend();
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="btn primary"
+                    disabled={sending || !draft.trim()}
+                    onClick={() => void handleSend()}
+                  >
+                    {sending ? 'Enviando…' : 'Enviar'}
+                  </button>
+                </div>
               </div>
             </>
           )}
