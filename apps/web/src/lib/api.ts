@@ -2,6 +2,7 @@ import type {
   ConversationDto,
   MeDto,
   MessageDto,
+  StatsDto,
   WhatsappStatusDto,
 } from '@mini-crm/shared-types';
 import { auth } from './firebase';
@@ -43,6 +44,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   getMe: () => request<MeDto>('/me'),
+  getStats: () => request<StatsDto>('/stats'),
   getConversations: () => request<ConversationDto[]>('/conversations'),
   getMessages: (conversationId: string) =>
     request<MessageDto[]>(`/conversations/${conversationId}/messages`),

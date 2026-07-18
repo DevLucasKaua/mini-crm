@@ -364,6 +364,69 @@ button {
   border-radius: 14px;
   box-shadow: var(--shadow);
   padding: 16px 18px;
+  min-width: 0;
+}
+
+.dash-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-actions .btn {
+  text-decoration: none;
+}
+
+/* ---------- dashboard ---------- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 14px;
+}
+
+.dash-grid .kpi {
+  grid-column: span 3;
+}
+
+.dash-grid .kpi.wide {
+  grid-column: span 6;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kpi .num {
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.kpi .num-sm {
+  font-size: 17px;
+}
+
+.kpi-chip {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+@media (max-width: 1100px) {
+  .dash-grid .kpi,
+  .dash-grid .kpi.wide {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 700px) {
+  .dash-grid .kpi,
+  .dash-grid .kpi.wide {
+    grid-column: span 12;
+  }
 }
 
 /* ---------- conversas (cv-layout) ---------- */
