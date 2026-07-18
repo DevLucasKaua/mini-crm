@@ -4,6 +4,7 @@ import { Layout } from './components/Layout';
 import { ConnectPage } from './pages/ConnectPage';
 import { InboxPage } from './pages/InboxPage';
 import { LoginPage } from './pages/LoginPage';
+import { OverviewPage } from './pages/OverviewPage';
 
 export function App() {
   return (
@@ -11,8 +12,9 @@ export function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route element={<RequireAuth />}>
         <Route element={<Layout />}>
-          <Route index element={<InboxPage />} />
-          <Route path="/connect" element={<ConnectPage />} />
+          <Route index element={<OverviewPage />} />
+          <Route path="/conversas" element={<InboxPage />} />
+          <Route path="/conexao" element={<ConnectPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
