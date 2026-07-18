@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.2.8",
     "@mini-crm/shared-types": "workspace:*",
     "firebase": "^12.16.0",
     "react": "^19.2.7",

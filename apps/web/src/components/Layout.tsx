@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, Outlet } from 'react-router';
 import { useAuth } from '../auth/AuthProvider';
 import { api, ApiError } from '../lib/api';
+import { ThemeToggle } from '../theme/ThemeToggle';
 
 const navClassName = ({ isActive }: { isActive: boolean }) =>
   isActive ? 'nav-link active' : 'nav-link';
@@ -45,6 +46,7 @@ export function Layout() {
           </nav>
         </div>
         <div className="app-header-user">
+          <ThemeToggle />
           {me && (
             <span>
               {user?.email} — <strong>{me.unit.name}</strong>
