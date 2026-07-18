@@ -187,3 +187,48 @@ body {
   color: #80868b;
   text-align: right;
 }
+
+.app-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.nav-link {
+  border: none;
+  background: transparent;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  color: #5f6368;
+}
+
+.nav-link:hover {
+  background: #f0f2f5;
+}
+
+.nav-link.active {
+  background: #e7f0fe;
+  color: #1a73e8;
+  font-weight: 600;
+}
+
+.connect-page {
+  padding: 2rem;
+}
+
+.connect-qr img {
+  width: 260px;
+  height: 260px;
+  image-rendering: pixelated;
+}
+
+.connect-qr p {
+  max-width: 340px;
+  color: #5f6368;
+}
+
+.connect-ok {
+  color: #188038;
+}
