@@ -2,13 +2,17 @@ import type { MeDto } from '@mini-crm/shared-types';
 import { useEffect, useState } from 'react';
 import { useAuth } from './auth/AuthProvider';
 import { api, ApiError } from './lib/api';
+import { ConnectPage } from './pages/ConnectPage';
 import { InboxPage } from './pages/InboxPage';
 import { LoginPage } from './pages/LoginPage';
+
+type View = 'inbox' | 'connect';
 
 export function App() {
   const { user, loading, signOut } = useAuth();
   const [me, setMe] = useState<MeDto | null>(null);
   const [meError, setMeError] = useState<string | null>(null);
+  const [view, setView] = useState<View>('inbox');
 
   useEffect(() => {
     if (!user) {
@@ -39,7 +43,25 @@ export function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <h1>Mini CRM</h1>
+        <div className="app-header-nav">
+          <h1>Mini CRM</h1>
+          <nav>
+            <button
+              type="button"
+              className={view === 'inbox' ? 'nav-link active' : 'nav-link'}
+              onClick={() => setView('inbox')}
+            >
+              Inbox
+            </button>
+            <button
+              type="button"
+              className={view === 'connect' ? 'nav-link active' : 'nav-link'}
+              onClick={() => setView('connect')}
+            >
+              Conexão
+            </button>
+          </nav>
+        </div>
         <div className="app-header-user">
           {me && (
             <span>
@@ -52,7 +74,7 @@ export function App() {
         </div>
       </header>
       {meError && <p className="login-error">{meError}</p>}
-      {me && <InboxPage />}
+      {me && (view === 'inbox' ? <InboxPage /> : <ConnectPage />)}
     </div>
   );
 }
