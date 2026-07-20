@@ -81,6 +81,10 @@ pnpm dev:api    # porta 3000
 pnpm dev:web    # porta 5173
 ```
 
+### Dados de demonstração (opcional)
+
+`pnpm seed:demo` popula conversas e mensagens fictícias nas duas unidades — útil para ver o inbox e o dashboard preenchidos sem parear um WhatsApp. É idempotente: re-rodar não duplica nada, apenas atualiza os timestamps para "agora" (as mensagens demo são marcadas com `waMessageId` prefixado `demo-`). Não roda automaticamente no compose; requer o seed base (`pnpm seed`) aplicado antes.
+
 ## Regra do bot de auto-resposta
 
 Mensagem recebida cujo texto, após `trim()`, seja **exatamente `Oi`** (case-sensitive) recebe a resposta **`Oi! Aqui é o Atendente da E3`**, persistida como OUTBOUND. Variações (`oi`, `OI`, `Oi!`) não disparam o bot — a mensagem é apenas registrada no inbox.
